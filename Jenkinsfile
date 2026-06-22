@@ -22,7 +22,9 @@ pipeline {
         stage('Deploy') {
             steps {
                 echo 'Deploiement continu vers Vercel...'
-                sh 'vercel --prod --yes --token=$VERCEL_TOKEN'
+                withCredentials([string(credentialsId: 'vercel-token', variable: 'VERCEL_TOKEN')]) {
+                    sh 'vercel --prod --yes --token=$VERCEL_TOKEN'
+                }
             }
         }
     }
