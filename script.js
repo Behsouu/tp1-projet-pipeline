@@ -1,35 +1,45 @@
-// Scroll-reveal : observe chaque .reveal et ajoute .visible quand il entre dans le viewport
-const observer = new IntersectionObserver(
+// Respect prefers-reduced-motion avant toute animation
+const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+// Scroll-reveal : IntersectionObserver sur chaque .reveal
+const revealObserver = new IntersectionObserver(
   (entries) => {
     entries.forEach((entry) => {
       if (entry.isIntersecting) {
         entry.target.classList.add('visible');
-        observer.unobserve(entry.target); // une seule fois suffit
+        revealObserver.unobserve(entry.target);
       }
     });
   },
-  { threshold: 0.15 }
+  { threshold: 0.12 }
 );
 
-document.querySelectorAll('.reveal').forEach((el) => observer.observe(el));
+document.querySelectorAll('.reveal').forEach((el) => {
+  if (reducedMotion) {
+    el.classList.add('visible'); // affichage immédiat sans animation
+  } else {
+    revealObserver.observe(el);
+  }
+});
 
-// Highlight nav link actif selon la section visible
+// Nav active : highlight du lien correspondant à la section visible
 const sections = document.querySelectorAll('section[id]');
-const navLinks = document.querySelectorAll('.nav-links a');
+const navLinks = document.querySelectorAll('.nav-links a[href^="#"]');
 
 const navObserver = new IntersectionObserver(
   (entries) => {
     entries.forEach((entry) => {
       if (entry.isIntersecting) {
         navLinks.forEach((link) => {
-          link.style.color = link.getAttribute('href') === `#${entry.target.id}`
-            ? 'var(--primary-light)'
-            : '';
+          const active = link.getAttribute('href') === `#${entry.target.id}`;
+          if (!link.classList.contains('nav-cta')) {
+            link.style.color = active ? 'var(--c-primary)' : '';
+          }
         });
       }
     });
   },
-  { threshold: 0.5 }
+  { rootMargin: '-40% 0px -55% 0px' }
 );
 
 sections.forEach((s) => navObserver.observe(s));
